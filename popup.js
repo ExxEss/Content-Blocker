@@ -25,7 +25,7 @@ function saveKeyword() {
         chrome.storage.local.get({ keywords: [] }, function (data) {
             let keywords = data.keywords;
             if (!keywords.includes(keyword)) {
-                keywords.push(keyword);
+                keywords.unshift(keyword);
                 chrome.storage.local.set({ keywords: keywords }, function () {
                     document.getElementById('keywordInput').value = '';
                     updateKeywordsList();
