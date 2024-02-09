@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keyword Blocker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            width: 300px;
+            padding: 20px 20px 10px 20px;
+            margin: 0;
+            background-color: #333;
+            color: #fff;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        .input-group, .toggle-group {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        #keywordInput, #toggleBtn {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #555;
+            background-color: #555;
+            color: #fff;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        #keywordInput:focus {
+            outline: none;
+            border-color: transparent; /* Hides the border when input is focused */
+            box-shadow: none;
+        }
+        #saveBtn, #toggleBtn {
+            padding: 8px 12px;
+            background-color: #555; /* Updated to match your request */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        #saveBtn:hover, #toggleBtn:hover {
+            background-color: #0056b3;
+        }
+        #keywordsList {
+            list-style-type: none;
+            padding: 0;
+            margin-top: 10px;
+            display: none;
+        }
+        #keywordsList li {
+            background-color: #454545;
+            padding: 8px;
+            margin-bottom: 6px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #keywordsList li button {
+            padding: 4px 8px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        #keywordsList li button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="input-group">
+        <input type="text" id="keywordInput" placeholder="Enter keyword">
+        <button id="saveBtn">Save</button>
+    </div>
+    <div class="toggle-group">
+        <button id="toggleBtn">Show Keywords</button>
+    </div>
+    <ul id="keywordsList"></ul>
+    <script src="popup.js"></script>
+</body>
+</html>

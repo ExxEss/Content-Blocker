@@ -1,0 +1,1 @@
+console.log('Content Blocker Extension Loaded');
