@@ -49,10 +49,10 @@ function updateKeywordsList() {
     chrome.storage.local.get({ keywords: [] }, function (data) {
         data.keywords.forEach(keyword => {
             let li = document.createElement('li');
-            li.textContent = keyword;
+            li.textContent = keyword + " "; // Add a space before the button for separation
 
             let deleteBtn = document.createElement('button');
-            deleteBtn.textContent = 'Delete';
+            deleteBtn.className = 'delete-btn'; // Apply CSS styles for the "X"
             deleteBtn.onclick = function () { deleteKeyword(keyword); };
 
             li.appendChild(deleteBtn);
@@ -63,7 +63,6 @@ function updateKeywordsList() {
 
 document.getElementById('saveBtn').addEventListener('click', saveKeyword);
 
-// Load the keywords list initially
 document.addEventListener('DOMContentLoaded', function() {
     // Existing functionality to update keywords list and save a keyword
     updateKeywordsList();
@@ -72,13 +71,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const keywordsList = document.getElementById('keywordsList');
     
     toggleBtn.addEventListener('click', function() {
-        if (keywordsList.style.display === 'none') {
+        // Check if keywordsList is not visible either because it's "none" or hasn't been set (empty string)
+        if (keywordsList.style.display === 'none' || keywordsList.style.display === '') {
             keywordsList.style.display = 'block';
-            toggleBtn.textContent = 'Hide Keywords';
+            toggleBtn.textContent = 'Hide blocked';
         } else {
             keywordsList.style.display = 'none';
-            toggleBtn.textContent = 'Show Keywords';
+            toggleBtn.textContent = 'Show blocked';
         }
     });
 });
+
 
