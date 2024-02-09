@@ -1,0 +1,106 @@
+body {
+    font-family: Arial, sans-serif;
+    width: 300px; /* Adjust as necessary */
+    padding: 20px 20px 10px 20px;
+    margin: 0 auto; /* Center the layout */
+    background-color: #333;
+    color: #fff;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.input-save-group, .toggle-group {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+#keywordInput, #saveBtn, #toggleBtn {
+    padding: 8px;
+    font-size: 14px;
+    border-radius: 4px;
+    color: white;
+    background-color: #555;
+    border: 0px solid #555;
+    outline: none;
+}
+
+#keywordInput {
+    flex-grow: 1;
+    margin-right: 10px; /* Space between input and save button */
+}
+
+#saveBtn {
+    /* No specific width, allowing it to grow as needed */
+}
+
+#toggleBtn {
+    width: 100%; /* Full width minus padding and any margins */
+    text-align: center; /* Optional: Center the text */
+}
+
+#toggleBtn:hover, #saveBtn:hover {
+    background-color: #0056b3;
+}
+
+#keywordsList {
+    list-style-type: none;
+    padding: 0;
+    margin-top: 10px;
+    display: none; /* Initially hidden */
+}
+
+#keywordsList li {
+    background-color: #454545;
+    padding: 8px;
+    margin-bottom: 6px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#keywordsList li button {
+    padding: 4px 8px;
+    /* background-color: #dc3545; */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+#keywordsList li button:hover {
+    /* background-color: #c82333; */
+}
+
+.delete-btn {
+    position: relative;
+    width: 16px; /* Size of the "X" */
+    height: 16px; /* Size of the "X" */
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-btn::before, .delete-btn::after {
+    content: '';
+    position: absolute;
+    width: 2px; /* Width of the "X" lines */
+    height: 100%;
+    background-color: #fff; /* Color of the "X" */
+}
+
+.delete-btn::before {
+    transform: rotate(45deg);
+}
+
+.delete-btn::after {
+    transform: rotate(-45deg);
+}
+
+.delete-btn:hover::before, .delete-btn:hover::after {
+    background-color: #dc3545; 
+}
+
