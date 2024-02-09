@@ -21,9 +21,7 @@ function removeElementsByKeyword(keywords) {
     // Adjusted logic to convert elementsToRemove Set to Array for iteration
     const elementsToRemoveArray = Array.from(elementsToRemove);
     elementsToRemoveArray.forEach(node => {
-        const repetitiveAncestor = getRepetiveAncestor(node);
-        console.log('Node to remove:', node);
-        console.log('Repetitive ancestor:', repetitiveAncestor);
+        const repetitiveAncestor = getRepetitiveAncestor(node);
         if (repetitiveAncestor) {
             elementsToRemove.add(repetitiveAncestor);
         }
@@ -31,8 +29,8 @@ function removeElementsByKeyword(keywords) {
 
     // Now proceed to remove elements
     elementsToRemove.forEach(element => {
-        console.log('Removing element:', element);
         element.remove();
+        console.log('Removed:', element);
     });
 }
 
@@ -52,30 +50,36 @@ function createTreeWalker(pattern) {
     });
 }
 
-// Helper function to get the most closest ancestor that is repetive
-// A "repetive" ancestor which it's tag is "li" or it's class is repetive in it's parent
-function getRepetiveAncestor(node) {
+// Helper function to find the repetitive ancestor of a node
+function getRepetitiveAncestor(node) {
     let current = node;
-    while (current && current !== document.body) { // Ensure current is not null and not the body
-        if (current.tagName === 'LI') {
-            return current; // Return if the tag is LI
+    while (current && current !== document.body) {
+        // Check for LI or A tags directly or consider a broader approach
+        if (current.tagName === 'LI' || current.tagName === 'A') {
+            if (isRepetitiveSibling(current)) {
+                return current;
+            }
+        } else if (current.className && isRepetitiveSibling(current, true)) {
+            // Check for repetitive class names only if the current node has a class
+            return current;
         }
-        // Convert childNodes to array and filter
-        const siblings = Array.from(
-            current.parentElement.childNodes
-        ).filter(child =>
-            child.nodeType === Node.ELEMENT_NODE &&
-            current.className &&
-            child.className === current.className
-        );
-        if (siblings.length > 1) {
-            console.log('Sibling elements:', siblings);
-            return current; // Return if it's a repetitive class name
-        }
+
         current = current.parentElement; // Move up the tree
     }
-    return null; // Return null if no repetitive ancestor is found
+    return null;
 }
+
+// Helper function to check if the node has siblings with the same tag or class
+function isRepetitiveSibling(node, checkClass = false) {
+    const siblings = Array.from(node.parentElement.children); // Use .children for element nodes only
+    const matches = siblings.filter(sibling => {
+        // Check by tag name or class name based on `checkClass` flag
+        return checkClass ? sibling.className === node.className : sibling.tagName === node.tagName;
+    });
+    // Considered repetitive if more than one match is found (including the node itself)
+    return matches.length > 1;
+}
+
 
 function observeDOM() {
     const observer = new MutationObserver(mutations => {
