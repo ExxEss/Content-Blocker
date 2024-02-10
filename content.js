@@ -10,7 +10,7 @@ let keywordElements = [];
 function hideElementsByKeywords(keywords) {
     if (keywords.length === 0) return;
 
-    const pattern = new RegExp(keywords.map(keyword => RegExp.escape(keyword)).join('|'), 'i');
+    const pattern = createPattern(keywords);
     const treeWalker = createTreeWalker(pattern);
 
     let node;
@@ -95,31 +95,22 @@ function isRepetitiveSibling(node, checkClass = false) {
     return matches.length > 1;
 }
 
-function shouldAcceptNode(keywords, node) {
-    const pattern = new RegExp(keywords.map(keyword => RegExp.escape(keyword)).join('|'), 'i');
-
-    return pattern.test(node.textContent);
+function createPattern(keywords) {
+    return new RegExp(keywords.map(keyword => RegExp.escape(keyword)).join('|'), 'i');
 }
 
 // Assuming the rest of your code remains unchanged, update the observeDOM and refreshKeywordsAndBlockContent functions
 function observeDOM() {
     chrome.storage.local.get({ keywords: [], blockerEnabled: true }, function (data) {
-        const observer = new MutationObserver(mutations => {
-            const keywords = data.keywords;
-            if (keywords.length === 0 || !data.blockerEnabled) return;
+        if (data.keywords.length === 0 || !data.blockerEnabled) return;
 
+        const pattern = createPattern(data.keywords); 
+
+        const observer = new MutationObserver(mutations => {
             mutations.forEach(mutation => {
                 mutation.addedNodes.forEach(node => {
-                    if (node.nodeType === 1) {
-                        const containsKeyword = keywords.some(
-                            keyword => node.textContent.includes(keyword)
-                        );
-                        if (containsKeyword) {
-                            keywordElements.push({
-                                element: node, originalDisplay: node.style.display
-                            });
-                            node.style.display = 'none';
-                        }
+                    if (node.nodeType === Node.ELEMENT_NODE) { 
+                        checkAndHideNode(node, pattern);
                     }
                 });
             });
@@ -127,6 +118,13 @@ function observeDOM() {
 
         observer.observe(document.body, { childList: true, subtree: true });
     });
+}
+
+function checkAndHideNode(node, pattern) {
+    if (pattern.test(node.textContent)) {
+        keywordElements.push({ element: node, originalDisplay: node.style.display });
+        node.style.display = 'none';
+    }
 }
 
 function refreshKeywordsAndBlockContent() {
