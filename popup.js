@@ -54,16 +54,30 @@ function deleteKeyword(keyword) {
 
 function updateKeywordList() {
     const listElement = document.getElementById('keywordList');
+    const toggleKeywordBtn = document.getElementById('toggleKeywordBtn'); // Ensure this ID matches your button
+
     listElement.innerHTML = ''; // Clear current list
 
     chrome.storage.local.get({ keywords: [] }, function (data) {
+        const keywordCount = data.keywords.length; // Get the count of keywords
+
+        // Hide the toggle button if there are no keywords, else update text and show it
+        if (keywordCount > 0) {
+            toggleKeywordBtn.textContent = `Hide blocked (${keywordCount})`;
+            toggleKeywordBtn.style.display = ''; // Make sure the button is visible
+        } else {
+            toggleKeywordBtn.style.display = 'none'; // Hide the button if no keywords are blocked
+        }
+
         data.keywords.forEach(keyword => {
             let li = document.createElement('li');
-            li.textContent = keyword + " "; // Add a space before the button for separation
+            li.textContent = keyword + " "; // Add a space before the delete button for separation
 
             let deleteBtn = document.createElement('button');
             deleteBtn.className = 'delete-btn'; // Apply CSS styles for the "X"
-            deleteBtn.onclick = function () { deleteKeyword(keyword); };
+            deleteBtn.onclick = function () { 
+                deleteKeyword(keyword); 
+            };
 
             li.appendChild(deleteBtn);
             listElement.appendChild(li);
@@ -83,19 +97,22 @@ document.addEventListener('DOMContentLoaded', function () {
     // Existing functionality to update keywords list and save a keyword
     updateKeywordList();
 
-    const toggleKeywordBtn = document.getElementById('toggleKeywordBtn');
-    const keywordList = document.getElementById('keywordList');
-
-    // Toggle visibility of blocked keywords list
-    toggleKeywordBtn.addEventListener('click', function () {
+    document.getElementById('toggleKeywordBtn').addEventListener('click', function () {
+        const keywordList = document.getElementById('keywordList');
+        // Check the current display state of the keyword list
         if (keywordList.style.display === 'none' || keywordList.style.display === '') {
-            keywordList.style.display = 'block';
-            toggleKeywordBtn.textContent = 'Hide blocked';
+            keywordList.style.display = 'block'; // Show the keyword list
+            // Update the button text to reflect the action that will be taken if clicked again
+            this.textContent = `Hide blocked (${keywordList.querySelectorAll('li').length})`;
         } else {
-            keywordList.style.display = 'none';
-            toggleKeywordBtn.textContent = 'Show blocked';
+            keywordList.style.display = 'none'; // Hide the keyword list
+            // Since the button might be hidden if there are no keywords, ensure it only updates when visible
+            if (this.style.display !== 'none') {
+                this.textContent = `Show blocked (${keywordList.querySelectorAll('li').length})`;
+            }
         }
     });
+    
 
     // Enable/Disable the blocker functionality
     document.getElementById('toogleBlockerBtn').addEventListener('click', function () {

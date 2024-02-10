@@ -10,7 +10,11 @@ let keywordElements = [];
 function hideElementsByKeywords(keywords) {
     if (keywords.length === 0) return;
 
-    const pattern = new RegExp(keywords.map(keyword => RegExp.escape(keyword)).join('|'), 'i');
+    const pattern = new RegExp(
+        keywords.map(
+            keyword => RegExp.escape(keyword)
+        ).join('|'), 'i'
+    );
     const treeWalker = createTreeWalker(pattern);
 
     let node;
@@ -21,6 +25,15 @@ function hideElementsByKeywords(keywords) {
             keywordElements.push({ element: repetitiveAncestor, originalDisplay: repetitiveAncestor.style.display });
             repetitiveAncestor.style.display = 'none'; // Hide the element
         }
+    }
+
+    // Log the list of hidden elements for debugging
+    logHiddenElements();
+}
+
+function logHiddenElements() {
+    for (const keywordElement of keywordElements) {
+        console.log('Hidden:', keywordElement.element);
     }
 }
 
@@ -142,7 +155,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         case 'blockContentWithNewKeyword':
             if (request.data) {
                 // Ensure hideElementsByKeyword expects and handles an array of keywords
-                hideElementsByKeywords([request.data]); 
+                hideElementsByKeywords([request.data]);
             }
             break;
         case 'unblockContentWithNewKeyword':
