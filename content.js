@@ -22,7 +22,6 @@ function hideElementsByKeywords(keywords) {
             repetitiveAncestor.style.display = 'none'; // Hide the element
         }
     }
-    // Log the list of hidden elements for debugging
     logHiddenElements();
 }
 
