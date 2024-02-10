@@ -63,15 +63,21 @@ function updateKeywordsList() {
 
 document.getElementById('saveBtn').addEventListener('click', saveKeyword);
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
+    // Load the initial blocker status and update the button text
+    chrome.storage.local.get({ blockerEnabled: true }, function (data) {
+        const enableDisableBtn = document.getElementById('enableDisableBtn');
+        enableDisableBtn.textContent = data.blockerEnabled ? 'Disable Blocker' : 'Enable Blocker';
+    });
+
     // Existing functionality to update keywords list and save a keyword
     updateKeywordsList();
-    
+
     const toggleBtn = document.getElementById('toggleBtn');
     const keywordsList = document.getElementById('keywordsList');
-    
-    toggleBtn.addEventListener('click', function() {
-        // Check if keywordsList is not visible either because it's "none" or hasn't been set (empty string)
+
+    // Toggle visibility of blocked keywords list
+    toggleBtn.addEventListener('click', function () {
         if (keywordsList.style.display === 'none' || keywordsList.style.display === '') {
             keywordsList.style.display = 'block';
             toggleBtn.textContent = 'Hide blocked';
@@ -79,6 +85,21 @@ document.addEventListener('DOMContentLoaded', function() {
             keywordsList.style.display = 'none';
             toggleBtn.textContent = 'Show blocked';
         }
+    });
+
+    // Enable/Disable the blocker functionality
+    document.getElementById('enableDisableBtn').addEventListener('click', function () {
+        chrome.storage.local.get({ blockerEnabled: true }, function (data) {
+            const newState = !data.blockerEnabled;
+            chrome.storage.local.set({ blockerEnabled: newState }, function () {
+                document.getElementById('enableDisableBtn').textContent = newState ? 'Disable Blocker' : 'Enable Blocker';
+                // Optionally, send a message to content.js to act on this state change
+                // This requires message handling in content.js to listen for this message
+                chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+                    chrome.tabs.sendMessage(tabs[0].id, { action: "toggleBlockerState", state: newState });
+                });
+            });
+        });
     });
 });
 

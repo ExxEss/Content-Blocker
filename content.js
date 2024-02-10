@@ -81,44 +81,51 @@ function isRepetitiveSibling(node, checkClass = false) {
 }
 
 
+// Assuming the rest of your code remains unchanged, update the observeDOM and refreshKeywordsAndBlockContent functions
 function observeDOM() {
-    const observer = new MutationObserver(mutations => {
-        chrome.storage.local.get({ keywords: [] }, function (data) {
-            const keywords = data.keywords;
-            mutations.forEach(mutation => {
-                mutation.addedNodes.forEach(node => {
-                    if (node.nodeType === 1) { // Check if the node is an element
-                        // Check if any keyword is contained in the node's textContent
-                        const containsKeyword = keywords.some(keyword => node.textContent.includes(keyword));
-                        if (containsKeyword) {
-                            node.remove();
-                        } else {
-                            // Check newly added node's children for keywords
-                            removeElementsByKeyword(keywords);
+    chrome.storage.local.get({ blockerEnabled: true }, function (data) {
+        if (!data.blockerEnabled) return; // Exit if blocker is disabled
+
+        const observer = new MutationObserver(mutations => {
+            chrome.storage.local.get({ keywords: [] }, function (data) {
+                const keywords = data.keywords;
+                if (keywords.length === 0 || !data.blockerEnabled) return; // Check if blocker is enabled
+
+                mutations.forEach(mutation => {
+                    mutation.addedNodes.forEach(node => {
+                        if (node.nodeType === 1) { // Check if the node is an element
+                            const containsKeyword = keywords.some(keyword => node.textContent.includes(keyword));
+                            if (containsKeyword) {
+                                node.remove();
+                            } else {
+                                removeElementsByKeyword(keywords);
+                            }
                         }
-                    }
+                    });
                 });
             });
         });
-    });
 
-    observer.observe(document.body, { childList: true, subtree: true });
+        observer.observe(document.body, { childList: true, subtree: true });
+    });
 }
 
 function refreshKeywordsAndBlockContent() {
-    chrome.storage.local.get({ keywords: [] }, function (data) {
+    chrome.storage.local.get({ keywords: [], blockerEnabled: true }, function (data) {
+        if (!data.blockerEnabled) return; // Exit if blocker is disabled
+
         const keywords = data.keywords;
         removeElementsByKeyword(keywords);
         observeDOM();
     });
 }
 
-// Initial call to block content based on keywords
-refreshKeywordsAndBlockContent();
+// Adjust initial call and message listener to check blockerEnabled state
+refreshKeywordsAndBlockContent(); // Initial call to setup, conditional inside functions
 
-// Listen for messages from popup.js to refresh keywords
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     if (request.action === "refreshKeywords") {
-        refreshKeywordsAndBlockContent();
+        refreshKeywordsAndBlockContent(); // This will now check blocker state internally
     }
 });
+

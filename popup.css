@@ -42,6 +42,27 @@ body {
     background-color: #0056b3;
 }
 
+.control-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+}
+
+#enableDisableBtn {
+    padding: 8px;
+    font-size: 14px;
+    border-radius: 4px;
+    color: white;
+    background-color: #555;
+    border: 0;
+    outline: none;
+    margin-bottom: 10px; /* Space between this and the toggle button */
+}
+
+#enableDisableBtn:hover {
+    background-color: #007bff; /* Different color to indicate action */
+}
+
 #keywordsList {
     list-style-type: none;
     padding: 0;
