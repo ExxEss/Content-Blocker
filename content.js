@@ -5,32 +5,40 @@ if (!RegExp.escape) {
     };
 }
 
-function removeElementsByKeyword(keywords) {
+let keywordElements = [];
+
+function hideElementsByKeywords(keywords) {
     if (keywords.length === 0) return;
 
     const pattern = new RegExp(keywords.map(keyword => RegExp.escape(keyword)).join('|'), 'i');
-    const elementsToRemove = new Set();
-
     const treeWalker = createTreeWalker(pattern);
 
     let node;
     while (node = treeWalker.nextNode()) {
-        elementsToRemove.add(node.parentNode); // Consider the parent element of the text node for removal
-    }
-
-    // Adjusted logic to convert elementsToRemove Set to Array for iteration
-    const elementsToRemoveArray = Array.from(elementsToRemove);
-    elementsToRemoveArray.forEach(node => {
-        const repetitiveAncestor = getRepetitiveAncestor(node);
-        if (repetitiveAncestor) {
-            elementsToRemove.add(repetitiveAncestor);
+        const parentElement = node.parentNode;
+        const repetitiveAncestor = getRepetitiveAncestor(parentElement) || parentElement;
+        if (!keywordElements.some(el => el.element === repetitiveAncestor)) {
+            keywordElements.push({ element: repetitiveAncestor, originalDisplay: repetitiveAncestor.style.display });
+            repetitiveAncestor.style.display = 'none'; // Hide the element
         }
-    });
+    }
+}
 
-    // Now proceed to remove elements
-    elementsToRemove.forEach(element => {
-        element.remove();
-        console.log('Removed:', element);
+function restoreHiddenElements() {
+    keywordElements.forEach(({ element, originalDisplay }) => {
+        element.style.display = originalDisplay || ''; // Restore original display style or default
+    });
+    keywordElements = []; // Clear the list after restoring
+}
+
+function restoreHiddenElementsWithKeyword(keyword) {
+    const pattern = new RegExp(RegExp.escape(keyword), 'i');
+    keywordElements = keywordElements.filter(({ element, originalDisplay }) => {
+        if (pattern.test(element.textContent)) {
+            element.style.display = originalDisplay || ''; // Restore visibility
+            return false; // Remove from tracking
+        }
+        return true; // Keep others as is
     });
 }
 
@@ -98,7 +106,7 @@ function observeDOM() {
                             if (containsKeyword) {
                                 node.remove();
                             } else {
-                                removeElementsByKeyword(keywords);
+                                hideElementsByKeywords(keywords);
                             }
                         }
                     });
@@ -115,7 +123,7 @@ function refreshKeywordsAndBlockContent() {
         if (!data.blockerEnabled) return; // Exit if blocker is disabled
 
         const keywords = data.keywords;
-        removeElementsByKeyword(keywords);
+        hideElementsByKeywords(keywords);
         observeDOM();
     });
 }
@@ -124,8 +132,30 @@ function refreshKeywordsAndBlockContent() {
 refreshKeywordsAndBlockContent(); // Initial call to setup, conditional inside functions
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-    if (request.action === 'blockContent') {
-        refreshKeywordsAndBlockContent(); // This will now check blocker state internally
+    switch (request.action) {
+        case 'blockContent':
+            refreshKeywordsAndBlockContent();
+            break;
+        case 'unblockContent':
+            restoreHiddenElements();
+            break;
+        case 'blockContentWithNewKeyword':
+            if (request.data) {
+                // Ensure hideElementsByKeyword expects and handles an array of keywords
+                hideElementsByKeywords([request.data]); 
+            }
+            break;
+        case 'unblockContentWithNewKeyword':
+            if (request.data) {
+                // Correct function name to match its purpose and ensure it's implemented
+                restoreHiddenElementsWithKeyword(request.data);
+            }
+            break;
+        default:
+            console.log("Unknown action:", request.action);
+            break;
     }
 });
+
+
 

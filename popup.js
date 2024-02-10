@@ -9,7 +9,7 @@ document.getElementById('saveBtn').addEventListener('click', function () {
                 // Save the updated keywords array back to localStorage
                 chrome.storage.local.set({ keywords: keywords }, function () {
                     document.getElementById('keywordInput').value = '';
-                    sendMessageToContentScript('refreshKeywords');
+                    sendMessageToContentScript('blockContentWithNewKeyword', keyword);
                 });
             }
         });
@@ -18,7 +18,9 @@ document.getElementById('saveBtn').addEventListener('click', function () {
 
 const sendMessageToContentScript = (action, data) => {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-        chrome.tabs.sendMessage(tabs[0].id, { action, data });
+        for (let tab of tabs) {
+            chrome.tabs.sendMessage(tab.id, { action, data });
+        }
     });
 };
 
@@ -41,7 +43,12 @@ function saveKeyword() {
 function deleteKeyword(keyword) {
     chrome.storage.local.get({ keywords: [] }, function (data) {
         let keywords = data.keywords.filter(k => k !== keyword);
-        chrome.storage.local.set({ keywords: keywords }, updateKeywordList);
+        chrome.storage.local.set({ keywords: keywords },
+            function () {
+                updateKeywordList();
+                sendMessageToContentScript('unblockContentWithNewKeyword', keyword);
+            }
+        );
     });
 }
 
@@ -100,10 +107,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         document.getElementById('toogleBlockerBtn').textContent = newState
                             ? 'Disable Blocker'
                             : 'Enable Blocker';
-                        
-                        if (newState) {
-                            sendMessageToContentScript('blockContent');
-                        }
+
+                        action = newState ? 'blockContent' : 'unblockContent';
+                        sendMessageToContentScript(action);
                     });
             });
     });
