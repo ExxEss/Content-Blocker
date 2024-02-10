@@ -27,7 +27,7 @@ function hideElementsByKeywords(keywords) {
 
 function logHiddenElements() {
     for (const keywordElement of keywordElements) {
-        alert('Hidden:', keywordElement.element);
+        console.log('Hidden:', keywordElement.element);
     }
 }
 
