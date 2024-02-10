@@ -14,7 +14,7 @@ body {
     margin-bottom: 10px;
 }
 
-#keywordInput, #saveBtn, #toggleBtn {
+#keywordInput, #saveBtn, #toggleKeywordBtn {
     padding: 8px;
     font-size: 14px;
     border-radius: 4px;
@@ -33,13 +33,13 @@ body {
     /* No specific width, allowing it to grow as needed */
 }
 
-#toggleBtn {
+#toggleKeywordBtn {
     width: 100%; /* Full width minus padding and any margins */
     text-align: center; /* Optional: Center the text */
 }
 
-#toggleBtn:hover, #saveBtn:hover {
-    background-color: #0056b3;
+#toggleKeywordBtn:hover, #saveBtn:hover {
+    background-color: #007bff;
 }
 
 .control-group {
@@ -48,7 +48,7 @@ body {
     margin-bottom: 10px;
 }
 
-#enableDisableBtn {
+#toogleBlockerBtn {
     padding: 8px;
     font-size: 14px;
     border-radius: 4px;
@@ -59,18 +59,18 @@ body {
     margin-bottom: 10px; /* Space between this and the toggle button */
 }
 
-#enableDisableBtn:hover {
+#toogleBlockerBtn:hover {
     background-color: #007bff; /* Different color to indicate action */
 }
 
-#keywordsList {
+#keywordList {
     list-style-type: none;
     padding: 0;
     margin-top: 10px;
     display: none; /* Initially hidden */
 }
 
-#keywordsList li {
+#keywordList li {
     background-color: #454545;
     padding: 8px;
     margin-bottom: 6px;
@@ -80,17 +80,12 @@ body {
     align-items: center;
 }
 
-#keywordsList li button {
+#keywordList li button {
     padding: 4px 8px;
-    /* background-color: #dc3545; */
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-size: 12px;
-}
-
-#keywordsList li button:hover {
-    /* background-color: #c82333; */
 }
 
 .delete-btn {

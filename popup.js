@@ -9,15 +9,18 @@ document.getElementById('saveBtn').addEventListener('click', function () {
                 // Save the updated keywords array back to localStorage
                 chrome.storage.local.set({ keywords: keywords }, function () {
                     document.getElementById('keywordInput').value = '';
-                    // Optionally, send a message to content.js to refresh the keywords
-                    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-                        chrome.tabs.sendMessage(tabs[0].id, { action: "refreshKeywords" });
-                    });
+                    sendMessageToContentScript('refreshKeywords');
                 });
             }
         });
     }
 });
+
+const sendMessageToContentScript = (action, data) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        chrome.tabs.sendMessage(tabs[0].id, { action, data });
+    });
+};
 
 function saveKeyword() {
     const keyword = document.getElementById('keywordInput').value.trim();
@@ -28,7 +31,7 @@ function saveKeyword() {
                 keywords.unshift(keyword);
                 chrome.storage.local.set({ keywords: keywords }, function () {
                     document.getElementById('keywordInput').value = '';
-                    updateKeywordsList();
+                    updateKeywordList();
                 });
             }
         });
@@ -38,12 +41,12 @@ function saveKeyword() {
 function deleteKeyword(keyword) {
     chrome.storage.local.get({ keywords: [] }, function (data) {
         let keywords = data.keywords.filter(k => k !== keyword);
-        chrome.storage.local.set({ keywords: keywords }, updateKeywordsList);
+        chrome.storage.local.set({ keywords: keywords }, updateKeywordList);
     });
 }
 
-function updateKeywordsList() {
-    const listElement = document.getElementById('keywordsList');
+function updateKeywordList() {
+    const listElement = document.getElementById('keywordList');
     listElement.innerHTML = ''; // Clear current list
 
     chrome.storage.local.get({ keywords: [] }, function (data) {
@@ -66,40 +69,43 @@ document.getElementById('saveBtn').addEventListener('click', saveKeyword);
 document.addEventListener('DOMContentLoaded', function () {
     // Load the initial blocker status and update the button text
     chrome.storage.local.get({ blockerEnabled: true }, function (data) {
-        const enableDisableBtn = document.getElementById('enableDisableBtn');
-        enableDisableBtn.textContent = data.blockerEnabled ? 'Disable Blocker' : 'Enable Blocker';
+        const toogleBlockerBtn = document.getElementById('toogleBlockerBtn');
+        toogleBlockerBtn.textContent = data.blockerEnabled ? 'Disable Blocker' : 'Enable Blocker';
     });
 
     // Existing functionality to update keywords list and save a keyword
-    updateKeywordsList();
+    updateKeywordList();
 
-    const toggleBtn = document.getElementById('toggleBtn');
-    const keywordsList = document.getElementById('keywordsList');
+    const toggleKeywordBtn = document.getElementById('toggleKeywordBtn');
+    const keywordList = document.getElementById('keywordList');
 
     // Toggle visibility of blocked keywords list
-    toggleBtn.addEventListener('click', function () {
-        if (keywordsList.style.display === 'none' || keywordsList.style.display === '') {
-            keywordsList.style.display = 'block';
-            toggleBtn.textContent = 'Hide blocked';
+    toggleKeywordBtn.addEventListener('click', function () {
+        if (keywordList.style.display === 'none' || keywordList.style.display === '') {
+            keywordList.style.display = 'block';
+            toggleKeywordBtn.textContent = 'Hide blocked';
         } else {
-            keywordsList.style.display = 'none';
-            toggleBtn.textContent = 'Show blocked';
+            keywordList.style.display = 'none';
+            toggleKeywordBtn.textContent = 'Show blocked';
         }
     });
 
     // Enable/Disable the blocker functionality
-    document.getElementById('enableDisableBtn').addEventListener('click', function () {
-        chrome.storage.local.get({ blockerEnabled: true }, function (data) {
-            const newState = !data.blockerEnabled;
-            chrome.storage.local.set({ blockerEnabled: newState }, function () {
-                document.getElementById('enableDisableBtn').textContent = newState ? 'Disable Blocker' : 'Enable Blocker';
-                // Optionally, send a message to content.js to act on this state change
-                // This requires message handling in content.js to listen for this message
-                chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-                    chrome.tabs.sendMessage(tabs[0].id, { action: "toggleBlockerState", state: newState });
-                });
+    document.getElementById('toogleBlockerBtn').addEventListener('click', function () {
+        chrome.storage.local.get({ blockerEnabled: true },
+            function (data) {
+                const newState = !data.blockerEnabled;
+                chrome.storage.local.set({ blockerEnabled: newState },
+                    function () {
+                        document.getElementById('toogleBlockerBtn').textContent = newState
+                            ? 'Disable Blocker'
+                            : 'Enable Blocker';
+                        
+                        if (newState) {
+                            sendMessageToContentScript('blockContent');
+                        }
+                    });
             });
-        });
     });
 });
 

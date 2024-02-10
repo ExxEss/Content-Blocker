@@ -124,7 +124,7 @@ function refreshKeywordsAndBlockContent() {
 refreshKeywordsAndBlockContent(); // Initial call to setup, conditional inside functions
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-    if (request.action === "refreshKeywords") {
+    if (request.action === 'blockContent') {
         refreshKeywordsAndBlockContent(); // This will now check blocker state internally
     }
 });
