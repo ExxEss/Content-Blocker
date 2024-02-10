@@ -111,7 +111,8 @@ function observeDOM() {
                         if (node.nodeType === 1) { // Check if the node is an element
                             const containsKeyword = keywords.some(keyword => node.textContent.includes(keyword));
                             if (containsKeyword) {
-                                node.remove();
+                                keywordElements.push({ element: node, originalDisplay: node.style.display });
+                                node.style.display = 'none';
                             } else {
                                 hideElementsByKeywords(keywords);
                             }
@@ -163,6 +164,3 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             break;
     }
 });
-
-
-
