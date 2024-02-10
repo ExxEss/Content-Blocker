@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    width: 400px; /* Adjust as necessary */
+    width: 400px;
     padding: 20px;
     margin: 0 auto; /* Center the layout */
     background-color: #333;
@@ -33,8 +33,7 @@ body {
 }
 
 #toggleKeywordBtn {
-    width: 100%; /* Full width minus padding and any margins */
-    text-align: center; /* Optional: Center the text */
+    text-align: center;
 }
 
 #toggleKeywordBtn:hover, #saveBtn:hover {
@@ -54,11 +53,11 @@ body {
     background-color: #555;
     border: 0;
     outline: none;
-    margin-bottom: 10px; /* Space between this and the toggle button */
+    margin-bottom: 10px;
 }
 
 #toogleBlockerBtn:hover {
-    background-color: #c800ff; /* Different color to indicate action */
+    background-color: #c800ff;
 }
 
 #keywordList {
@@ -66,9 +65,9 @@ body {
     padding: 0;
     margin-top: 4px;
     margin-bottom: 0px;
-    display: none; /* Changed from 'none' to 'flex' to accommodate columns */
-    flex-wrap: wrap; /* Allow items to wrap as needed */
-    justify-content: space-between; /* Distribute space between items */
+    display: none;
+    flex-wrap: wrap;
+    justify-content: space-between;
 }
 
 li {
@@ -76,9 +75,9 @@ li {
     padding: 6px;
     margin-top: 6px;
     border-radius: 4px;
-    width: calc(100% * 0.33333 - 4px); /* Adjust width of columns */
-    margin-right: 0%; /* Adjust spacing between columns */
-    box-sizing: border-box; /* Include padding and border in the element's width */
+    width: calc(100% * 0.33333 - 4px);
+    margin-right: 0%;
+    box-sizing: border-box;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -86,8 +85,8 @@ li {
 
 .delete-btn {
     position: relative;
-    width: 12px; /* Size of the "X" */
-    height: 12px; /* Size of the "X" */
+    width: 12px;
+    height: 12px;
     background-color: transparent;
     border: none;
     cursor: pointer;
@@ -99,9 +98,9 @@ li {
 .delete-btn::before, .delete-btn::after {
     content: '';
     position: absolute;
-    width: 1px; /* Width of the "X" lines */
+    width: 1px;
     height: 100%;
-    background-color: #fff; /* Color of the "X" */
+    background-color: #fff;
 }
 
 .delete-btn::before {
