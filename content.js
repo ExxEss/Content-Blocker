@@ -27,7 +27,7 @@ function hideElementsByKeywords(keywords) {
 
 function logHiddenElements() {
     for (const keywordElement of keywordElements) {
-        console.log('Hidden:', keywordElement.element);
+        alert('Hidden:', keywordElement.element);
     }
 }
 
@@ -95,29 +95,32 @@ function isRepetitiveSibling(node, checkClass = false) {
     return matches.length > 1;
 }
 
+function shouldAcceptNode(keywords, node) {
+    const pattern = new RegExp(keywords.map(keyword => RegExp.escape(keyword)).join('|'), 'i');
+
+    return pattern.test(node.textContent);
+}
 
 // Assuming the rest of your code remains unchanged, update the observeDOM and refreshKeywordsAndBlockContent functions
 function observeDOM() {
-    chrome.storage.local.get({ blockerEnabled: true }, function (data) {
-        if (!data.blockerEnabled) return; // Exit if blocker is disabled
-
+    chrome.storage.local.get({ keywords: [], blockerEnabled: true }, function (data) {
         const observer = new MutationObserver(mutations => {
-            chrome.storage.local.get({ keywords: [] }, function (data) {
-                const keywords = data.keywords;
-                if (keywords.length === 0 || !data.blockerEnabled) return; // Check if blocker is enabled
+            const keywords = data.keywords;
+            if (keywords.length === 0 || !data.blockerEnabled) return;
 
-                mutations.forEach(mutation => {
-                    mutation.addedNodes.forEach(node => {
-                        if (node.nodeType === 1) { // Check if the node is an element
-                            const containsKeyword = keywords.some(keyword => node.textContent.includes(keyword));
-                            if (containsKeyword) {
-                                keywordElements.push({ element: node, originalDisplay: node.style.display });
-                                node.style.display = 'none';
-                            } else {
-                                hideElementsByKeywords(keywords);
-                            }
+            mutations.forEach(mutation => {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === 1) {
+                        const containsKeyword = keywords.some(
+                            keyword => node.textContent.includes(keyword)
+                        );
+                        if (containsKeyword) {
+                            keywordElements.push({
+                                element: node, originalDisplay: node.style.display
+                            });
+                            node.style.display = 'none';
                         }
-                    });
+                    }
                 });
             });
         });
@@ -150,7 +153,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         case 'blockContentWithNewKeyword':
             if (request.data) {
                 // Ensure hideElementsByKeyword expects and handles an array of keywords
-                hideElementsByKeywords([request.data]); 
+                hideElementsByKeywords([request.data]);
             }
             break;
         case 'unblockContentWithNewKeyword':
