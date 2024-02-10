@@ -10,11 +10,15 @@ let keywordElements = [];
 function hideElementsByKeywords(keywords) {
     if (keywords.length === 0) return;
 
+<<<<<<< HEAD
     const pattern = new RegExp(
         keywords.map(
             keyword => RegExp.escape(keyword)
         ).join('|'), 'i'
     );
+=======
+    const pattern = new RegExp(keywords.map(keyword => RegExp.escape(keyword)).join('|'), 'i');
+>>>>>>> 39e37315026cb80a86cce3aede20466b4fd4b860
     const treeWalker = createTreeWalker(pattern);
 
     let node;
@@ -26,6 +30,7 @@ function hideElementsByKeywords(keywords) {
             repetitiveAncestor.style.display = 'none'; // Hide the element
         }
     }
+<<<<<<< HEAD
 
     // Log the list of hidden elements for debugging
     logHiddenElements();
@@ -37,6 +42,10 @@ function logHiddenElements() {
     }
 }
 
+=======
+}
+
+>>>>>>> 39e37315026cb80a86cce3aede20466b4fd4b860
 function restoreHiddenElements() {
     keywordElements.forEach(({ element, originalDisplay }) => {
         element.style.display = originalDisplay || ''; // Restore original display style or default
@@ -155,7 +164,11 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         case 'blockContentWithNewKeyword':
             if (request.data) {
                 // Ensure hideElementsByKeyword expects and handles an array of keywords
+<<<<<<< HEAD
                 hideElementsByKeywords([request.data]);
+=======
+                hideElementsByKeywords([request.data]); 
+>>>>>>> 39e37315026cb80a86cce3aede20466b4fd4b860
             }
             break;
         case 'unblockContentWithNewKeyword':
