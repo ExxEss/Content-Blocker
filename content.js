@@ -2,9 +2,7 @@
 (function () {
     chrome.storage.local.get({ blockerEnabled: true }, function (data) {
         if (!data.blockerEnabled) {
-            const style = document.createElement('style');
-            style.innerHTML = 'body { visibility: visible !important; }';
-            document.head.appendChild(style);
+            revealContent();
         }
     });
 })();
