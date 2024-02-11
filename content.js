@@ -1,4 +1,14 @@
-// RegExp.escape polyfill for safety, as it's not a standard method yet
+// Self-executing anonymous function to avoid polluting the global scope
+(function () {
+    chrome.storage.local.get({ blockerEnabled: true }, function (data) {
+        if (!data.blockerEnabled) {
+            const style = document.createElement('style');
+            style.innerHTML = 'body { visibility: visible !important; }';
+            document.head.appendChild(style);
+        }
+    });
+})();
+
 if (!RegExp.escape) {
     RegExp.escape = function (s) {
         return String(s).replace(/[\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -8,9 +18,18 @@ if (!RegExp.escape) {
 let keywordElements = [];
 
 function hideElementsByKeywords(keywords) {
-    if (keywords.length === 0) return;
+    if (keywords.length === 0) {
+        revealContent();
+        return;
+    }
 
     const pattern = createPattern(keywords);
+
+    if (!pattern.test(document.body.textContent)) {
+        revealContent();
+        return;
+    }
+
     const treeWalker = createTreeWalker(pattern);
 
     let node;
@@ -20,14 +39,20 @@ function hideElementsByKeywords(keywords) {
         if (!keywordElements.some(el => el.element === repetitiveAncestor)) {
             keywordElements.push({ element: repetitiveAncestor, originalDisplay: repetitiveAncestor.style.display });
             repetitiveAncestor.style.display = 'none'; // Hide the element
+            hasKeywordMatch = true;
         }
     }
+    revealContent();
     logHiddenElements();
+}
+
+function revealContent() {
+    document.body.style.setProperty('visibility', 'visible', 'important');
 }
 
 function logHiddenElements() {
     for (const keywordElement of keywordElements) {
-        console.log('Hidden:', keywordElement.element);
+        console.log('Hidden:', keywordElement.element.textContent);
     }
 }
 
@@ -104,12 +129,12 @@ function observeDOM() {
     chrome.storage.local.get({ keywords: [], blockerEnabled: true }, function (data) {
         if (data.keywords.length === 0 || !data.blockerEnabled) return;
 
-        const pattern = createPattern(data.keywords); 
+        const pattern = createPattern(data.keywords);
 
         const observer = new MutationObserver(mutations => {
             mutations.forEach(mutation => {
                 mutation.addedNodes.forEach(node => {
-                    if (node.nodeType === Node.ELEMENT_NODE) { 
+                    if (node.nodeType === Node.ELEMENT_NODE) {
                         checkAndHideNode(node, pattern);
                     }
                 });

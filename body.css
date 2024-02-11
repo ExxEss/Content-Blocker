@@ -1,0 +1,4 @@
+/* hide-body.css */
+body {
+    visibility: hidden !important;
+}
