@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const keywordList = document.getElementById('keywordList');
         const isVisible = window.getComputedStyle(keywordList).display !== 'none';
 
-        keywordList.style.display = isVisible ? 'none' : 'flex';
+        keywordList.style.display = isVisible ? 'none' : 'grid';
 
         chrome.storage.local.get({ keywords: [] }, (data) => {
             const keywordCount = data.keywords.length;
