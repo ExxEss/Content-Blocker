@@ -35,8 +35,11 @@ function hideElementsByKeywords(keywords) {
         const parentElement = node.parentNode;
         const repetitiveAncestor = getRepetitiveAncestor(parentElement) || parentElement;
         if (!keywordElements.some(el => el.element === repetitiveAncestor)) {
-            keywordElements.push({ element: repetitiveAncestor, originalDisplay: repetitiveAncestor.style.display });
-            repetitiveAncestor.style.display = 'none'; // Hide the element
+            keywordElements.push({
+                element: repetitiveAncestor, 
+                originalDisplay: repetitiveAncestor.style.display
+            });
+            repetitiveAncestor.style.display = 'none';
             hasKeywordMatch = true;
         }
     }
@@ -56,19 +59,19 @@ function logHiddenElements() {
 
 function restoreHiddenElements() {
     keywordElements.forEach(({ element, originalDisplay }) => {
-        element.style.display = originalDisplay || ''; // Restore original display style or default
+        element.style.display = originalDisplay || '';
     });
-    keywordElements = []; // Clear the list after restoring
+    keywordElements = [];
 }
 
 function restoreHiddenElementsWithKeyword(keyword) {
     const pattern = new RegExp(RegExp.escape(keyword), 'i');
     keywordElements = keywordElements.filter(({ element, originalDisplay }) => {
         if (pattern.test(element.textContent)) {
-            element.style.display = originalDisplay || ''; // Restore visibility
-            return false; // Remove from tracking
+            element.style.display = originalDisplay || '';
+            return false;
         }
-        return true; // Keep others as is
+        return true;
     });
 }
 
@@ -160,9 +163,6 @@ function refreshKeywordsAndBlockContent() {
     });
 }
 
-// Adjust initial call and message listener to check blockerEnabled state
-refreshKeywordsAndBlockContent(); // Initial call to setup, conditional inside functions
-
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     switch (request.action) {
         case 'blockContent':
@@ -172,19 +172,15 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             restoreHiddenElements();
             break;
         case 'blockContentWithNewKeyword':
-            if (request.data) {
-                // Ensure hideElementsByKeyword expects and handles an array of keywords
-                hideElementsByKeywords([request.data]);
-            }
+            if (request.data) hideElementsByKeywords([request.data]);
             break;
         case 'unblockContentWithNewKeyword':
-            if (request.data) {
-                // Correct function name to match its purpose and ensure it's implemented
-                restoreHiddenElementsWithKeyword(request.data);
-            }
+            if (request.data) restoreHiddenElementsWithKeyword(request.data);
             break;
         default:
             console.log("Unknown action:", request.action);
             break;
     }
 });
+
+refreshKeywordsAndBlockContent(); 
