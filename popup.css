@@ -14,10 +14,6 @@ body {
 }
 
 #keywordInput {
-    margin-bottom: 10px;
-}
-
-#keywordInput, #toggleKeywordBtn {
     padding: 8px;
     font-size: 14px;
     border-radius: 4px;
@@ -25,6 +21,7 @@ body {
     background-color: #555;
     border: 0px solid #555;
     outline: none;
+    margin-bottom: 10px;
 }
 
 #keywordInput {
@@ -32,20 +29,15 @@ body {
     background-color: #555;
 }
 
-#toggleKeywordBtn {
-    text-align: center;
-}
-
-#toggleKeywordBtn:hover {
-    background-color: #c800ff;
-}
-
 .control-group {
     display: flex;
-    flex-direction: column;
+    flex-direction: row; 
+    justify-content: space-between;
+    width: 100%;
 }
 
-#toogleBlockerBtn {
+#toggleBlockerBtn, #toggleKeywordBtn {
+    flex: 1;
     padding: 8px;
     font-size: 14px;
     border-radius: 4px;
@@ -53,10 +45,15 @@ body {
     background-color: #555;
     border: 0;
     outline: none;
-    margin-bottom: 10px;
+    margin-right: 10px;
 }
 
-#toogleBlockerBtn:hover {
+#toggleKeywordBtn {
+    margin-right: 0;
+}
+
+
+#toggleBlockerBtn:hover, #toggleKeywordBtn:hover {
     background-color: #c800ff;
 }
 
@@ -114,4 +111,3 @@ li {
 .delete-btn:hover::before, .delete-btn:hover::after {
     background-color: #dc3545; 
 }
-
