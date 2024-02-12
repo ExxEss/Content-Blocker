@@ -1,54 +1,33 @@
-// Self-executing anonymous function to avoid polluting the global scope
-(function () {
-    chrome.storage.local.get({ blockerEnabled: true }, function (data) {
-        if (!data.blockerEnabled) {
-            revealContent();
-        }
-    });
-})();
-
-if (!RegExp.escape) {
-    RegExp.escape = function (s) {
-        return String(s).replace(/[\\^$*+?.()|[\]{}]/g, '\\$&');
-    };
-}
-
 let keywordElements = [];
 
-function hideElementsByKeywords(keywords) {
-    if (keywords.length === 0) {
-        revealContent();
-        return;
-    }
+function hideElementsByKeywords() {
+    chrome.storage.local.get({ keywords: [], blockerEnabled: true }, function (data) {
+        if (!data.blockerEnabled || data.keywords.length === 0) return;
 
-    const pattern = createPattern(keywords);
+        const pattern = createPattern(data.keywords);
+        if (!pattern.test(document.body.textContent)) return;
 
-    if (!pattern.test(document.body.textContent)) {
-        revealContent();
-        return;
-    }
+        const treeWalker = createTreeWalker(pattern);
 
-    const treeWalker = createTreeWalker(pattern);
-
-    let node;
-    while (node = treeWalker.nextNode()) {
-        const parentElement = node.parentNode;
-        const repetitiveAncestor = getRepetitiveAncestor(parentElement) || parentElement;
-        if (!keywordElements.some(el => el.element === repetitiveAncestor)) {
-            keywordElements.push({
-                element: repetitiveAncestor, 
-                originalDisplay: repetitiveAncestor.style.display
-            });
-            repetitiveAncestor.style.display = 'none';
-            hasKeywordMatch = true;
+        let node;
+        while (node = treeWalker.nextNode()) {
+            const parentElement = node.parentNode;
+            const repetitiveAncestor = getRepetitiveAncestor(parentElement) || parentElement;
+            if (!keywordElements.some(el => el.element === repetitiveAncestor)) {
+                keywordElements.push({
+                    element: repetitiveAncestor,
+                    originalDisplay: repetitiveAncestor.style.display
+                });
+                repetitiveAncestor.style.backgroundColor = 'pink';
+                hasKeywordMatch = true;
+            }
         }
-    }
-    revealContent();
-    logHiddenElements();
+    });
 }
 
-function revealContent() {
-    document.body.style.setProperty('visibility', 'visible', 'important');
+function observeDOM() {
+    const observer = new MutationObserver(hideElementsByKeywords);
+    observer.observe(document.body, { childList: true, subtree: true });
 }
 
 function logHiddenElements() {
@@ -65,7 +44,7 @@ function restoreHiddenElements() {
 }
 
 function restoreHiddenElementsWithKeyword(keyword) {
-    const pattern = new RegExp(RegExp.escape(keyword), 'i');
+    const pattern = createPattern([keyword]);
     keywordElements = keywordElements.filter(({ element, originalDisplay }) => {
         if (pattern.test(element.textContent)) {
             element.style.display = originalDisplay || '';
@@ -95,84 +74,45 @@ function createTreeWalker(pattern) {
 function getRepetitiveAncestor(node) {
     let current = node;
     while (current && current !== document.body) {
-        // Check for LI or A tags directly or consider a broader approach
-        if (current.tagName === 'LI' || current.tagName === 'A') {
-            if (isRepetitiveSibling(current)) {
+        if (current.tagName === 'LI') {
+            return current;
+        } else if (current.className) {
+            if (isRepetitiveChild(current, true)) {
                 return current;
             }
-        } else if (current.className && isRepetitiveSibling(current, true)) {
-            // Check for repetitive class names only if the current node has a class
-            return current;
+        } else if (current.tagName === 'A') {
+            if (isRepetitiveChild(current)) {
+                return current;
+            }
         }
-
         current = current.parentElement; // Move up the tree
     }
     return null;
 }
 
 // Helper function to check if the node has siblings with the same tag or class
-function isRepetitiveSibling(node, checkClass = false) {
-    const siblings = Array.from(node.parentElement.children); // Use .children for element nodes only
+function isRepetitiveChild(node, checkClass = false) {
+    const siblings = Array.from(node.parentElement.children);
     const matches = siblings.filter(sibling => {
-        // Check by tag name or class name based on `checkClass` flag
-        return checkClass ? sibling.className === node.className : sibling.tagName === node.tagName;
+        return (
+            checkClass
+                ? sibling.className === node.className && !sibling.id
+                : true
+        ) && sibling.tagName === node.tagName;
     });
-    // Considered repetitive if more than one match is found (including the node itself)
     return matches.length > 1;
-}
-
-function createPattern(keywords) {
-    return new RegExp(keywords.map(keyword => RegExp.escape(keyword)).join('|'), 'i');
-}
-
-// Assuming the rest of your code remains unchanged, update the observeDOM and refreshKeywordsAndBlockContent functions
-function observeDOM() {
-    chrome.storage.local.get({ keywords: [], blockerEnabled: true }, function (data) {
-        if (data.keywords.length === 0 || !data.blockerEnabled) return;
-
-        const pattern = createPattern(data.keywords);
-
-        const observer = new MutationObserver(mutations => {
-            mutations.forEach(mutation => {
-                mutation.addedNodes.forEach(node => {
-                    if (node.nodeType === Node.ELEMENT_NODE) {
-                        checkAndHideNode(node, pattern);
-                    }
-                });
-            });
-        });
-
-        observer.observe(document.body, { childList: true, subtree: true });
-    });
-}
-
-function checkAndHideNode(node, pattern) {
-    if (pattern.test(node.textContent)) {
-        keywordElements.push({ element: node, originalDisplay: node.style.display });
-        node.style.display = 'none';
-    }
-}
-
-function refreshKeywordsAndBlockContent() {
-    chrome.storage.local.get({ keywords: [], blockerEnabled: true }, function (data) {
-        if (!data.blockerEnabled) return; // Exit if blocker is disabled
-
-        const keywords = data.keywords;
-        hideElementsByKeywords(keywords);
-        observeDOM();
-    });
 }
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     switch (request.action) {
         case 'blockContent':
-            refreshKeywordsAndBlockContent();
+            blockContent();
             break;
         case 'unblockContent':
             restoreHiddenElements();
             break;
         case 'blockContentWithNewKeyword':
-            if (request.data) hideElementsByKeywords([request.data]);
+            if (request.data) hideElementsByKeywords();
             break;
         case 'unblockContentWithNewKeyword':
             if (request.data) restoreHiddenElementsWithKeyword(request.data);
@@ -183,4 +123,11 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     }
 });
 
-refreshKeywordsAndBlockContent(); 
+function blockContent() {
+    hideElementsByKeywords();
+    revealContent();
+    observeDOM();
+    logHiddenElements();
+}
+
+blockContent(); 

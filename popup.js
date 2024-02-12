@@ -71,7 +71,7 @@ const sendMessageToContentScript = (action, data) => {
 document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.local.get({ keywords: [], blockerEnabled: true }, function (data) {
         updateKeywordsUI(data.keywords);
-        const toogleBlockerBtn = document.getElementById('toogleBlockerBtn');
+        const toogleBlockerBtn = document.getElementById('toggleBlockerBtn');
         toogleBlockerBtn.textContent = data.blockerEnabled ? 'Disable Blocker' : 'Enable Blocker';
     });
 
@@ -84,6 +84,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    document.getElementById('toggleBlockerBtn').addEventListener('click', function () {
+        chrome.storage.local.get({ blockerEnabled: true }, data => {
+            const newState = !data.blockerEnabled;
+            chrome.storage.local.set({ blockerEnabled: newState }, () => {
+                this.textContent = newState ? 'Disable Blocker' : 'Enable Blocker';
+                const action = newState ? 'blockContent' : 'unblockContent';
+                sendMessageToContentScript(action);
+            });
+        });
+    });
+
     document.getElementById('toggleKeywordBtn').addEventListener('click', function () {
         const keywordList = document.getElementById('keywordList');
         const isVisible = window.getComputedStyle(keywordList).display !== 'none';
@@ -93,17 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
         chrome.storage.local.get({ keywords: [] }, (data) => {
             const keywordCount = data.keywords.length;
             this.textContent = !isVisible ? `Hide blocked (${keywordCount})` : `Show blocked (${keywordCount})`;
-        });
-    });
-
-    document.getElementById('toogleBlockerBtn').addEventListener('click', function () {
-        chrome.storage.local.get({ blockerEnabled: true }, data => {
-            const newState = !data.blockerEnabled;
-            chrome.storage.local.set({ blockerEnabled: newState }, () => {
-                this.textContent = newState ? 'Disable Blocker' : 'Enable Blocker';
-                const action = newState ? 'blockContent' : 'unblockContent';
-                sendMessageToContentScript(action);
-            });
         });
     });
 });
