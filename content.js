@@ -18,7 +18,7 @@ function hideElementsByKeywords() {
                     element: repetitiveAncestor,
                     originalDisplay: repetitiveAncestor.style.display
                 });
-                repetitiveAncestor.style.backgroundColor = 'pink';
+                repetitiveAncestor.style.display = 'none';
                 hasKeywordMatch = true;
             }
         }
