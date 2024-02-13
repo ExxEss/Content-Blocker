@@ -26,7 +26,15 @@ function hideElementsByKeywords() {
 }
 
 function observeDOM() {
-    const observer = new MutationObserver(hideElementsByKeywords);
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.addedNodes.length > 0) {
+                console.log('Mutation:', mutation);
+                hideElementsByKeywords();
+            }
+        });
+    });
+
     observer.observe(document.body, { childList: true, subtree: true });
 }
 
