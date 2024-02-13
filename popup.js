@@ -26,6 +26,7 @@ function addKeyword(keyword) {
             keywords.unshift(keyword);
             chrome.storage.local.set({ keywords }, function () {
                 clearInputField();
+                showKeywordList();
                 updateKeywordsUI(keywords);
                 sendMessageToContentScript('blockContentWithNewKeyword', keyword);
             });
@@ -58,6 +59,11 @@ function updateKeywordList(keywords) {
         li.appendChild(deleteBtn);
         keywordList.appendChild(li);
     });
+}
+
+function showKeywordList() {
+    const keywordList = document.getElementById('keywordList');
+    keywordList.style.display = 'grid';
 }
 
 // Messaging
