@@ -1,5 +1,4 @@
 let keywordElements = [];
-
 function hideElementsByKeywords() {
     chrome.storage.local.get({ keywords: [], blockerEnabled: true }, function (data) {
         if (!data.blockerEnabled || data.keywords.length === 0) return;
@@ -12,24 +11,38 @@ function hideElementsByKeywords() {
         let node;
         while (node = treeWalker.nextNode()) {
             const parentElement = node.parentNode;
-            const repetitiveAncestor = getRepetitiveAncestor(parentElement) || parentElement;
-            if (!keywordElements.some(el => el.element === repetitiveAncestor)) {
+            const repetitiveAncestor = getRepetitiveAncestor(parentElement);
+            if (repetitiveAncestor && !keywordElements.some(el => el.element === repetitiveAncestor)) {
                 keywordElements.push({
                     element: repetitiveAncestor,
                     originalDisplay: repetitiveAncestor.style.display
                 });
                 repetitiveAncestor.style.display = 'none';
+
+                console.log('Blocked:', repetitiveAncestor);
                 hasKeywordMatch = true;
             }
         }
     });
 }
 
+let shouldBlock = true;
 function observeDOM() {
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             if (mutation.addedNodes.length > 0) {
-                hideElementsByKeywords();
+                if (shouldBlock) {
+                    hideElementsByKeywords();
+                    
+                    setTimeout(() => {
+                        hideElementsByKeywords();
+                    }, 1000);
+
+                    shouldBlock = false;
+                    setTimeout(() => {
+                        shouldBlock = true;
+                    }, 1000);
+                }
             }
         });
     });
@@ -37,15 +50,10 @@ function observeDOM() {
     observer.observe(document.body, { childList: true, subtree: true });
 }
 
-function logHiddenElements() {
-    for (const keywordElement of keywordElements) {
-        console.log('Hidden:', keywordElement.element.textContent);
-    }
-}
-
 function restoreHiddenElements() {
     keywordElements.forEach(({ element, originalDisplay }) => {
         element.style.display = originalDisplay || '';
+        element.style.backgroundColor = 'pink';
     });
     keywordElements = [];
 }
@@ -92,7 +100,7 @@ function getRepetitiveAncestor(node) {
                 return current;
             }
         }
-        current = current.parentElement; // Move up the tree
+        current = current.parentElement;
     }
     return null;
 }
@@ -113,7 +121,7 @@ function isRepetitiveChild(node, checkClass = false) {
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     switch (request.action) {
         case 'blockContent':
-            blockContent();
+            hideElementsByKeywords();
             break;
         case 'unblockContent':
             restoreHiddenElements();
@@ -130,11 +138,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     }
 });
 
-function blockContent() {
+(() => {
     hideElementsByKeywords();
-    revealContent();
     observeDOM();
-    logHiddenElements();
-}
-
-blockContent(); 
+    revealContent();
+})();
