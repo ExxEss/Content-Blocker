@@ -1,154 +1,204 @@
 body {
-    font-family: Arial, sans-serif;
-    width: 500px;
-    padding: 20px;
-    margin: 0 auto; /* Center the layout */
-    background-color: #333;
-    color: #fff;
-    border-radius: 15px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    width: 420px;
+    padding: 24px;
+    margin: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    border-radius: 16px;
     overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
 .site-info {
-    background-color: #555;
-    padding: 8px 12px;
-    border-radius: 4px;
-    margin-bottom: 15px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
     text-align: center;
-    font-weight: bold;
+    font-weight: 600;
+    font-size: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .input-group {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 .input {
     display: flex;
-    margin-bottom: 10px;
+    margin-bottom: 16px;
 }
 
 .scope-selector {
     display: flex;
-    gap: 15px;
+    gap: 20px;
     justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .scope-selector label {
     display: flex;
     align-items: center;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.scope-selector label:hover {
+    color: #e0e7ff;
 }
 
 .scope-selector input[type="radio"] {
-    margin-right: 5px;
-}
-
-#keywordInput {
-    padding: 8px;
-    font-size: 14px;
-    border-radius: 4px;
-    color: white;
-    background-color: #555;
-    border: 0px solid #555;
-    outline: none;
-    margin-bottom: 10px;
+    margin-right: 8px;
+    accent-color: #8b5cf6;
 }
 
 #keywordInput {
     flex-grow: 1;
-    background-color: #555;
+    padding: 14px 16px;
+    font-size: 14px;
+    border-radius: 12px;
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    outline: none;
+    margin-bottom: 16px;
+    font-weight: 400;
+    transition: all 0.2s ease;
+}
+
+#keywordInput:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+}
+
+#keywordInput::placeholder {
+    color: rgba(255, 255, 255, 0.6);
 }
 
 .control-group {
     display: flex;
-    flex-direction: row; 
-    justify-content: space-between;
-    width: 100%;
+    gap: 12px;
+    margin-bottom: 24px;
 }
 
 #toggleBlockerBtn, #toggleKeywordBtn {
     flex: 1;
-    padding: 8px;
-    font-size: 14px;
-    border-radius: 4px;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 10px;
     color: white;
-    background-color: #555;
-    border: 0;
-    outline: none;
-    margin-right: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
 }
-
-#toggleKeywordBtn {
-    margin-right: 0;
-}
-
 
 #toggleBlockerBtn:hover, #toggleKeywordBtn:hover {
-    background-color: #c800ff;
+    background: rgba(139, 92, 246, 0.3);
+    border-color: rgba(139, 92, 246, 0.5);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+}
+
+#toggleBlockerBtn:active, #toggleKeywordBtn:active {
+    transform: translateY(0);
 }
 
 .keywords-section {
-    margin-top: 15px;
+    margin-top: 8px;
 }
 
 .section-header {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .section-header h3 {
-    margin: 15px 0 5px 0;
-    font-size: 16px;
-    color: #ccc;
+    margin: 20px 0 8px 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: 0.5px;
 }
 
 #globalKeywordList, #siteKeywordList {
     display: none;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 6px; /* Space between grid items */
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
     padding: 0;
-    margin-bottom: 10px;
+    margin-bottom: 16px;
+    list-style: none;
 }
 
 /* Legacy support for old keywordList */
 #keywordList {
     display: none;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 6px; /* Space between grid items */
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
     padding: 0;
-    margin-top: 10px;
+    margin-top: 16px;
     margin-bottom: 0px;
+    list-style: none;
 }
 
 li {
-    background-color: #555;
-    padding: 6px;
-    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 10px 12px;
+    border-radius: 8px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     box-sizing: border-box;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.2s ease;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+li:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .delete-btn {
     position: relative;
-    width: 12px;
-    height: 12px;
-    margin-left: 2px;
-    background-color: transparent;
-    border: none;
+    width: 18px;
+    height: 18px;
+    margin-left: 8px;
+    background: rgba(220, 53, 69, 0.2);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    border-radius: 50%;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+    background: rgba(220, 53, 69, 0.3);
+    border-color: rgba(220, 53, 69, 0.5);
+    transform: scale(1.1);
 }
 
 .delete-btn::before, .delete-btn::after {
     content: '';
     position: absolute;
     width: 1px;
-    height: 100%;
-    background-color: #fff;
+    height: 10px;
+    background-color: rgba(255, 255, 255, 0.8);
+    transition: background-color 0.2s ease;
 }
 
 .delete-btn::before {
@@ -160,5 +210,5 @@ li {
 }
 
 .delete-btn:hover::before, .delete-btn:hover::after {
-    background-color: #dc3545; 
+    background-color: #fff;
 }
