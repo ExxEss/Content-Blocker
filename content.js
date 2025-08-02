@@ -24,11 +24,11 @@ function hideElementsByKeywords() {
             if (repetitiveAncestor && !keywordElements.some(el => el.element === repetitiveAncestor)) {
                 keywordElements.push({
                     element: repetitiveAncestor,
-                    originalDisplay: repetitiveAncestor.style.display
+                    originalHeight: repetitiveAncestor.style.height,
+                    originalOverflow: repetitiveAncestor.style.overflow
                 });
-                repetitiveAncestor.style.display = 'none';
-
-                console.log('Blocked:', repetitiveAncestor);
+                repetitiveAncestor.style.height = '0';
+                repetitiveAncestor.style.overflow = 'hidden';
                 hasKeywordMatch = true;
             }
         }
@@ -60,8 +60,9 @@ function observeDOM() {
 }
 
 function restoreHiddenElements() {
-    keywordElements.forEach(({ element, originalDisplay }) => {
-        element.style.display = originalDisplay || '';
+    keywordElements.forEach(({ element, originalHeight, originalOverflow }) => {
+        element.style.height = originalHeight || '';
+        element.style.overflow = originalOverflow || '';
         element.style.backgroundColor = 'pink';
     });
     keywordElements = [];
@@ -69,11 +70,12 @@ function restoreHiddenElements() {
 
 function restoreHiddenElementsWithKeyword(keyword, scope, site) {
     const pattern = createPattern([keyword]);
-    keywordElements = keywordElements.filter(({ element, originalDisplay }) => {
+    keywordElements = keywordElements.filter(({ element, originalHeight, originalOverflow }) => {
         if (pattern.test(element.textContent)) {
             // Only restore if the keyword matches the scope
             if (scope === 'global' || (scope === 'site' && site === currentSite)) {
-                element.style.display = originalDisplay || '';
+                element.style.height = originalHeight || '';
+                element.style.overflow = originalOverflow || '';
                 return false;
             }
         }
