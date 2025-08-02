@@ -1,52 +1,101 @@
 // Helper functions
+let currentSite = '';
+
 function getKeyword() {
     return document.getElementById('keywordInput').value.trim();
+}
+
+function getKeywordScope() {
+    return document.querySelector('input[name="keywordScope"]:checked').value;
 }
 
 function clearInputField() {
     document.getElementById('keywordInput').value = '';
 }
 
-function toggleButtonVisibility(keywordCount) {
-    const toggleKeywordBtn = document.getElementById('toggleKeywordBtn');
-    toggleKeywordBtn.style.display = keywordCount > 0 ? '' : 'none';
-    toggleKeywordBtn.textContent = `Show blocked (${keywordCount})`;
+function extractDomain(url) {
+    try {
+        return new URL(url).hostname;
+    } catch {
+        return url;
+    }
 }
 
-function updateKeywordsUI(keywords) {
-    updateKeywordList(keywords);
-    toggleButtonVisibility(keywords.length);
+function toggleButtonVisibility(globalCount, siteCount) {
+    const toggleKeywordBtn = document.getElementById('toggleKeywordBtn');
+    const totalCount = globalCount + siteCount;
+    toggleKeywordBtn.style.display = totalCount > 0 ? '' : 'none';
+    toggleKeywordBtn.textContent = `Show blocked (${totalCount})`;
+}
+
+function updateKeywordsUI(data) {
+    updateGlobalKeywordList(data.keywords || []);
+    updateSiteKeywordList(data.siteKeywords?.[currentSite] || []);
+    toggleButtonVisibility(
+        (data.keywords || []).length, 
+        (data.siteKeywords?.[currentSite] || []).length
+    );
 }
 
 // CRUD operations
 function addKeyword(keyword) {
-    chrome.storage.local.get({ keywords: [] }, function (data) {
-        let keywords = data.keywords;
-        if (!keywords.includes(keyword)) {
-            keywords.unshift(keyword);
-            chrome.storage.local.set({ keywords }, function () {
-                clearInputField();
-                showKeywordList();
-                updateKeywordsUI(keywords);
-                sendMessageToContentScript('blockContentWithNewKeyword', keyword);
-            });
+    const scope = getKeywordScope();
+    const storageKey = scope === 'global' ? 'keywords' : 'siteKeywords';
+    
+    chrome.storage.local.get({ keywords: [], siteKeywords: {} }, function (data) {
+        if (scope === 'global') {
+            if (!data.keywords.includes(keyword)) {
+                data.keywords.unshift(keyword);
+                chrome.storage.local.set({ keywords: data.keywords }, function () {
+                    clearInputField();
+                    showKeywordLists();
+                    updateKeywordsUI(data);
+                    sendMessageToContentScript('blockContentWithNewKeyword', { keyword, scope: 'global' });
+                });
+            }
+        } else {
+            if (!data.siteKeywords[currentSite]) {
+                data.siteKeywords[currentSite] = [];
+            }
+            if (!data.siteKeywords[currentSite].includes(keyword)) {
+                data.siteKeywords[currentSite].unshift(keyword);
+                chrome.storage.local.set({ siteKeywords: data.siteKeywords }, function () {
+                    clearInputField();
+                    showKeywordLists();
+                    updateKeywordsUI(data);
+                    sendMessageToContentScript('blockContentWithNewKeyword', { keyword, scope: 'site', site: currentSite });
+                });
+            }
         }
     });
 }
 
-function removeKeyword(keyword) {
-    chrome.storage.local.get({ keywords: [] }, function (data) {
-        let keywords = data.keywords.filter(k => k !== keyword);
-        chrome.storage.local.set({ keywords }, function () {
-            updateKeywordsUI(keywords);
-            sendMessageToContentScript('unblockContentWithNewKeyword', keyword);
-        });
+function removeKeyword(keyword, scope) {
+    chrome.storage.local.get({ keywords: [], siteKeywords: {} }, function (data) {
+        if (scope === 'global') {
+            data.keywords = data.keywords.filter(k => k !== keyword);
+            chrome.storage.local.set({ keywords: data.keywords }, function () {
+                updateKeywordsUI(data);
+                sendMessageToContentScript('unblockContentWithNewKeyword', { keyword, scope: 'global' });
+            });
+        } else {
+            if (data.siteKeywords[currentSite]) {
+                data.siteKeywords[currentSite] = data.siteKeywords[currentSite].filter(k => k !== keyword);
+                if (data.siteKeywords[currentSite].length === 0) {
+                    delete data.siteKeywords[currentSite];
+                }
+                chrome.storage.local.set({ siteKeywords: data.siteKeywords }, function () {
+                    updateKeywordsUI(data);
+                    sendMessageToContentScript('unblockContentWithNewKeyword', { keyword, scope: 'site', site: currentSite });
+                });
+            }
+        }
     });
 }
 
 // Update UI
-function updateKeywordList(keywords) {
-    const keywordList = document.getElementById('keywordList');
+function updateGlobalKeywordList(keywords) {
+    const keywordList = document.getElementById('globalKeywordList');
     keywordList.innerHTML = '';
     keywords.forEach(keyword => {
         let li = document.createElement('li');
@@ -54,16 +103,34 @@ function updateKeywordList(keywords) {
 
         let deleteBtn = document.createElement('button');
         deleteBtn.className = 'delete-btn';
-        deleteBtn.onclick = () => removeKeyword(keyword);
+        deleteBtn.onclick = () => removeKeyword(keyword, 'global');
 
         li.appendChild(deleteBtn);
         keywordList.appendChild(li);
     });
 }
 
-function showKeywordList() {
-    const keywordList = document.getElementById('keywordList');
-    keywordList.style.display = 'grid';
+function updateSiteKeywordList(keywords) {
+    const keywordList = document.getElementById('siteKeywordList');
+    keywordList.innerHTML = '';
+    keywords.forEach(keyword => {
+        let li = document.createElement('li');
+        li.textContent = keyword + " ";
+
+        let deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.onclick = () => removeKeyword(keyword, 'site');
+
+        li.appendChild(deleteBtn);
+        keywordList.appendChild(li);
+    });
+}
+
+function showKeywordLists() {
+    const globalKeywordList = document.getElementById('globalKeywordList');
+    const siteKeywordList = document.getElementById('siteKeywordList');
+    globalKeywordList.style.display = 'grid';
+    siteKeywordList.style.display = 'grid';
 }
 
 // Messaging
@@ -75,8 +142,16 @@ const sendMessageToContentScript = (action, data) => {
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', () => {
-    chrome.storage.local.get({ keywords: [], blockerEnabled: true }, function (data) {
-        updateKeywordsUI(data.keywords);
+    // Get current tab info
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]) {
+            currentSite = extractDomain(tabs[0].url);
+            document.getElementById('currentSite').textContent = currentSite;
+        }
+    });
+
+    chrome.storage.local.get({ keywords: [], siteKeywords: {}, blockerEnabled: true }, function (data) {
+        updateKeywordsUI(data);
         const toogleBlockerBtn = document.getElementById('toggleBlockerBtn');
         toogleBlockerBtn.textContent = data.blockerEnabled ? 'Disable Blocker' : 'Enable Blocker';
     });
@@ -86,7 +161,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('keywordInput').addEventListener('keydown', function (event) {
         if (event.key === 'Enter') {
             event.preventDefault();
-            addKeyword(getKeyword());
+            const keyword = getKeyword();
+            if (keyword) {
+                addKeyword(keyword);
+            }
         }
     });
 
@@ -102,14 +180,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('toggleKeywordBtn').addEventListener('click', function () {
-        const keywordList = document.getElementById('keywordList');
-        const isVisible = window.getComputedStyle(keywordList).display !== 'none';
+        const globalKeywordList = document.getElementById('globalKeywordList');
+        const siteKeywordList = document.getElementById('siteKeywordList');
+        const isVisible = window.getComputedStyle(globalKeywordList).display !== 'none';
 
-        keywordList.style.display = isVisible ? 'none' : 'grid';
+        globalKeywordList.style.display = isVisible ? 'none' : 'grid';
+        siteKeywordList.style.display = isVisible ? 'none' : 'grid';
 
-        chrome.storage.local.get({ keywords: [] }, (data) => {
-            const keywordCount = data.keywords.length;
-            this.textContent = !isVisible ? `Hide blocked (${keywordCount})` : `Show blocked (${keywordCount})`;
+        chrome.storage.local.get({ keywords: [], siteKeywords: {} }, (data) => {
+            const globalCount = data.keywords.length;
+            const siteCount = (data.siteKeywords[currentSite] || []).length;
+            const totalCount = globalCount + siteCount;
+            this.textContent = !isVisible ? `Hide blocked (${totalCount})` : `Show blocked (${totalCount})`;
         });
     });
 });

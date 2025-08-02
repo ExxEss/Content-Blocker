@@ -9,8 +9,39 @@ body {
     overflow-y: auto;
 }
 
+.site-info {
+    background-color: #555;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
 .input {
     display: flex;
+    margin-bottom: 10px;
+}
+
+.scope-selector {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.scope-selector label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.scope-selector input[type="radio"] {
+    margin-right: 5px;
 }
 
 #keywordInput {
@@ -57,6 +88,29 @@ body {
     background-color: #c800ff;
 }
 
+.keywords-section {
+    margin-top: 15px;
+}
+
+.section-header {
+    margin-bottom: 10px;
+}
+
+.section-header h3 {
+    margin: 15px 0 5px 0;
+    font-size: 16px;
+    color: #ccc;
+}
+
+#globalKeywordList, #siteKeywordList {
+    display: none;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px; /* Space between grid items */
+    padding: 0;
+    margin-bottom: 10px;
+}
+
+/* Legacy support for old keywordList */
 #keywordList {
     display: none;
     grid-template-columns: repeat(6, 1fr);

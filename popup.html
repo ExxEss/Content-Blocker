@@ -9,14 +9,43 @@
 </head>
 
 <body>
-    <div class="input">
-        <input type="text" id="keywordInput" placeholder="Input keyword (enter to save)">
+    <div class="site-info">
+        <span id="currentSite">Loading...</span>
     </div>
+    
+    <div class="input-group">
+        <div class="input">
+            <input type="text" id="keywordInput" placeholder="Input keyword (enter to save)">
+        </div>
+        <div class="scope-selector">
+            <label>
+                <input type="radio" name="keywordScope" value="global" checked>
+                Global
+            </label>
+            <label>
+                <input type="radio" name="keywordScope" value="site">
+                This site only
+            </label>
+        </div>
+    </div>
+    
     <div class="control-group">
         <button id="toggleBlockerBtn">Disable Blocker</button>
         <button id="toggleKeywordBtn">Show blocked</button>
     </div>
-    <ul id="keywordList"></ul>
+    
+    <div class="keywords-section">
+        <div class="section-header">
+            <h3>Global Keywords</h3>
+        </div>
+        <ul id="globalKeywordList"></ul>
+        
+        <div class="section-header">
+            <h3>Site-specific Keywords</h3>
+        </div>
+        <ul id="siteKeywordList"></ul>
+    </div>
+    
     <script src="popup.js"></script>
 </body>
 

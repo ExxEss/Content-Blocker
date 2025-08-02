@@ -1,9 +1,18 @@
 let keywordElements = [];
-function hideElementsByKeywords() {
-    chrome.storage.local.get({ keywords: [], blockerEnabled: true }, function (data) {
-        if (!data.blockerEnabled || data.keywords.length === 0) return;
+const currentSite = window.location.hostname;
 
-        const pattern = createPattern(data.keywords);
+function hideElementsByKeywords() {
+    chrome.storage.local.get({ keywords: [], siteKeywords: {}, blockerEnabled: true }, function (data) {
+        if (!data.blockerEnabled) return;
+
+        // Combine global keywords with site-specific keywords
+        const globalKeywords = data.keywords || [];
+        const siteKeywords = data.siteKeywords?.[currentSite] || [];
+        const allKeywords = [...globalKeywords, ...siteKeywords];
+        
+        if (allKeywords.length === 0) return;
+
+        const pattern = createPattern(allKeywords);
         if (!pattern.test(document.body.textContent)) return;
 
         const treeWalker = createTreeWalker(pattern);
@@ -58,12 +67,15 @@ function restoreHiddenElements() {
     keywordElements = [];
 }
 
-function restoreHiddenElementsWithKeyword(keyword) {
+function restoreHiddenElementsWithKeyword(keyword, scope, site) {
     const pattern = createPattern([keyword]);
     keywordElements = keywordElements.filter(({ element, originalDisplay }) => {
         if (pattern.test(element.textContent)) {
-            element.style.display = originalDisplay || '';
-            return false;
+            // Only restore if the keyword matches the scope
+            if (scope === 'global' || (scope === 'site' && site === currentSite)) {
+                element.style.display = originalDisplay || '';
+                return false;
+            }
         }
         return true;
     });
@@ -130,7 +142,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             if (request.data) hideElementsByKeywords();
             break;
         case 'unblockContentWithNewKeyword':
-            if (request.data) restoreHiddenElementsWithKeyword(request.data);
+            if (request.data) {
+                const { keyword, scope, site } = request.data;
+                restoreHiddenElementsWithKeyword(keyword, scope, site);
+            }
             break;
         default:
             console.log("Unknown action:", request.action);
