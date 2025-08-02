@@ -129,8 +129,11 @@ function updateSiteKeywordList(keywords) {
 function showKeywordLists() {
     const globalKeywordList = document.getElementById('globalKeywordList');
     const siteKeywordList = document.getElementById('siteKeywordList');
+    const sectionHeaders = document.querySelectorAll('.section-header');
+    
     globalKeywordList.style.display = 'grid';
     siteKeywordList.style.display = 'grid';
+    sectionHeaders.forEach(header => header.style.display = 'block');
 }
 
 // Messaging
@@ -150,13 +153,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    chrome.storage.local.get({ keywords: [], siteKeywords: {}, blockerEnabled: true }, function (data) {
+    chrome.storage.local.get({ keywords: [], siteKeywords: {}, blockerEnabled: true, keywordScope: 'global' }, function (data) {
         updateKeywordsUI(data);
         const toogleBlockerBtn = document.getElementById('toggleBlockerBtn');
         toogleBlockerBtn.textContent = data.blockerEnabled ? 'Disable Blocker' : 'Enable Blocker';
+        
+        // Restore selected scope
+        const scopeRadio = document.querySelector(`input[name="keywordScope"][value="${data.keywordScope}"]`);
+        if (scopeRadio) {
+            scopeRadio.checked = true;
+        }
     });
 
     document.getElementById('keywordInput').focus();
+
+    // Save scope selection when changed
+    document.querySelectorAll('input[name="keywordScope"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            chrome.storage.local.set({ keywordScope: this.value });
+        });
+    });
 
     document.getElementById('keywordInput').addEventListener('keydown', function (event) {
         if (event.key === 'Enter') {
@@ -182,10 +198,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('toggleKeywordBtn').addEventListener('click', function () {
         const globalKeywordList = document.getElementById('globalKeywordList');
         const siteKeywordList = document.getElementById('siteKeywordList');
+        const sectionHeaders = document.querySelectorAll('.section-header');
         const isVisible = window.getComputedStyle(globalKeywordList).display !== 'none';
 
         globalKeywordList.style.display = isVisible ? 'none' : 'grid';
         siteKeywordList.style.display = isVisible ? 'none' : 'grid';
+        sectionHeaders.forEach(header => header.style.display = isVisible ? 'none' : 'block');
 
         chrome.storage.local.get({ keywords: [], siteKeywords: {} }, (data) => {
             const globalCount = data.keywords.length;

@@ -120,6 +120,7 @@ body {
 
 .section-header {
     margin-bottom: 12px;
+    display: none;
 }
 
 .section-header h3 {
